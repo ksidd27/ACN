@@ -1,0 +1,83 @@
+Performance Analysis
+Experimental Setup
+
+A simulator for an input-queued packet switch was implemented in C++ to evaluate the performance of different scheduling algorithms used in crossbar switches. The switch consists of N input ports and N output ports, where packets arrive at the input ports and are forwarded to the desired output ports based on scheduling decisions. The simulation operates in discrete time slots, where each time slot corresponds to the transmission time of one packet.
+
+The simulator evaluates three different queue scheduling mechanisms:
+
+INQ (Input Queued Switch)
+
+KOUQ (Knock-Out Output Queued Switch)
+
+iSLIP Scheduling with Virtual Output Queues
+
+The following performance metrics were measured during the simulation:
+
+Average Packet Delay – the average time a packet spends in the system before transmission.
+
+Standard Deviation of Packet Delay – measures delay variation among packets.
+
+Average Link Utilization – fraction of time the output links are actively transmitting packets.
+
+Drop Probability – probability of packet drops due to output buffer overflow (relevant for KOUQ).
+
+The experiments were conducted for different switch sizes:
+
+N = 4, 8, 16, 32
+
+Two traffic conditions were evaluated:
+
+Moderate traffic: packet generation probability p = 0.5
+
+Heavy traffic: packet generation probability p = 0.9
+
+Each simulation was executed for 10,000 time slots to obtain stable statistical results.
+
+Performance Comparison of Scheduling Algorithms
+1. Average Packet Delay
+
+The first set of experiments evaluates the average packet delay as the switch size increases. The results show distinct differences among the scheduling algorithms.
+
+In the INQ scheduling mechanism, packets are stored in FIFO queues at each input port. A major limitation of this approach is Head-of-Line (HOL) blocking, where a packet at the front of the queue prevents other packets behind it from being transmitted even if their destination output ports are free. Due to this phenomenon, the switch cannot fully utilize the available output bandwidth, which leads to increased delays and reduced throughput.
+
+The KOUQ scheduling mechanism reduces delay by allowing packets to be buffered at the output ports. However, the number of packets that can be accepted per output port per time slot is limited by a parameter K. If the number of packets requesting an output port exceeds K, only K packets are randomly selected while the rest are dropped. Because of this controlled buffering and elimination of input contention, KOUQ generally achieves lower average delay compared to INQ.
+
+The iSLIP scheduling algorithm employs Virtual Output Queues (VOQ) at each input port to eliminate HOL blocking. Each input port maintains a separate queue for each output port. During each time slot, the algorithm performs three phases: Request, Grant, and Accept, using round-robin arbitration to ensure fairness and avoid starvation. As a result, iSLIP can achieve high throughput and efficient utilization of the switching fabric.
+
+Under heavy traffic conditions, the delay in iSLIP may increase because packets accumulate in VOQ buffers. However, this occurs while maintaining higher throughput and link utilization compared to the other schemes.
+
+2. Link Utilization
+
+Another important metric for evaluating the performance of switching algorithms is link utilization, which indicates how efficiently the switch uses its output links.
+
+The experimental results show that INQ exhibits lower link utilization, typically around 0.60–0.65 under heavy traffic conditions. This is mainly due to HOL blocking, which prevents multiple input ports from efficiently accessing different output ports simultaneously.
+
+The KOUQ algorithm improves link utilization by buffering packets at the output ports and allowing multiple packets to compete for output resources. This mechanism significantly reduces input contention and increases the probability that an output port can transmit a packet in each time slot.
+
+Among the three algorithms, iSLIP consistently achieves the highest link utilization, approaching values close to 0.9 under heavy traffic conditions. This improvement is achieved because VOQ eliminates HOL blocking and the round-robin scheduling ensures fair and efficient allocation of output ports to competing input ports.
+
+3. Packet Drop Probability
+
+Packet drop probability is relevant only for the KOUQ scheduling mechanism, where the number of packets that can enter an output queue per slot is limited to K. When more than K packets request the same output port in a time slot, the excess packets are dropped.
+
+The experiments show that drop probability increases with higher traffic loads and smaller K values. However, for moderate traffic conditions, the drop probability remains relatively small. Increasing the value of K allows more packets to be accepted per slot, thereby reducing the drop probability.
+
+INQ and iSLIP do not drop packets in this implementation since packets are buffered in input or virtual output queues.
+
+4. Effect of Switch Size
+
+As the number of switch ports N increases, the overall complexity of scheduling decisions also increases. The experimental results demonstrate that the performance gap between the algorithms becomes more noticeable for larger switch sizes.
+
+INQ performance degrades due to increased HOL blocking.
+
+KOUQ maintains moderate performance with occasional packet drops.
+
+iSLIP scales better with increasing N due to its efficient arbitration mechanism and elimination of HOL blocking.
+
+Thus, iSLIP proves to be more suitable for high-performance switching systems where scalability and fairness are important.
+
+Conclusion
+
+The simulation results demonstrate that the choice of scheduling algorithm significantly impacts the performance of packet switches. INQ suffers from HOL blocking, which limits throughput and increases packet delay. KOUQ improves performance by allowing output buffering but may incur packet drops under heavy traffic conditions. The iSLIP algorithm effectively eliminates HOL blocking using virtual output queues and round-robin arbitration, resulting in higher link utilization and better scalability.
+
+Overall, the results confirm that iSLIP provides the most efficient scheduling mechanism among the three algorithms evaluated, particularly for large switch sizes and high traffic loads.
